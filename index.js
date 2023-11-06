@@ -33,6 +33,16 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result)
     })
+    app.get('/digitalMarketing', async(req,res) =>{
+        const cursor = digitalMarketingCollections.find();
+        const result = await cursor.toArray();
+        res.send(result)
+    })
+    app.get('/graphicsDesigner', async(req,res) =>{
+        const cursor = graphicsDesignCollections.find();
+        const result = await cursor.toArray();
+        res.send(result)
+    })
 
 
 
