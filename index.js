@@ -74,22 +74,33 @@ app.get('/graphicsDesigner/:id', async(req,res) =>{
   
 })
 
-
-
-
 /// for all bid jobs
 
 app.post('/allBid', async(req,res) =>{
   const bids = req.body;
-  console.log(bids)
   const result = await allBidJobsCollections.insertOne(bids);
   res.send(result)
 })
 
+// get all bid by email
 
-    app.post('/user',async(req,res) =>{
+app.get('/MyBids', async(req,res) =>{
+  console.log(req.query.email);
+  let query = {};
+  if(req.query?.email){
+      query = {email : req.query.email}
+  }
+  const result = await allBidJobsCollections.find(query).toArray();
+  res.send(result)
+
+})
+
+
+
+
+
+   app.post('/user',async(req,res) =>{
       const users = req.body;
-      console.log(users)
       const result = await usersCollections.insertOne(users);
       res.send(result)
     })
