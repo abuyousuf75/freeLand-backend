@@ -29,6 +29,7 @@ async function run() {
     const digitalMarketingCollections = client.db('freeLand').collection('DigitalMarketing');
     const usersCollections = client.db('freeLand').collection('user');
     const allBidJobsCollections =  client.db('freeLand').collection('allBid');
+    const myPostedJobsCollections = client.db('freeLand').collection('myPostedJobs');
 
     app.get('/webDevolopment', async(req,res) =>{
         const cursor =  webDevolopemtCollections.find();
@@ -95,8 +96,24 @@ app.get('/MyBids', async(req,res) =>{
 
 })
 
+// get all postedJobs
 
+app.get('/postedJobs', async(req,res) =>{
+  const cursor = myPostedJobsCollections.find();
+  const result = await cursor.toArray();
+  res.send(result)
+})
 
+app.get('/myPostedJobs', async(req,res) =>{
+  console.log(req.query.email);
+  let query = {};
+  if(req.query?.email){
+      query = {email : req.query.email}
+  }
+  const result = await myPostedJobsCollections.find(query).toArray();
+  res.send(result)
+
+})
 
 
    app.post('/user',async(req,res) =>{
@@ -105,9 +122,14 @@ app.get('/MyBids', async(req,res) =>{
       res.send(result)
     })
 
+// post all myPostedJobs
 
-
-
+app.post('/postedJobs',async(req,res) =>{
+  const postedJobs = req.body;
+  console.log(postedJobs)
+  const result = await myPostedJobsCollections.insertOne(postedJobs);
+  res.send(result)
+})
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
