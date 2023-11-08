@@ -96,6 +96,8 @@ app.get('/MyBids', async(req,res) =>{
 
 })
 
+
+
 // get all postedJobs
 
 app.get('/postedJobs', async(req,res) =>{
@@ -112,7 +114,53 @@ app.get('/myPostedJobs', async(req,res) =>{
   }
   const result = await myPostedJobsCollections.find(query).toArray();
   res.send(result)
+})
 
+// update Posted Jobs
+app.get('/updatePostedJobs', async(req,res) =>{
+  const cursor = myPostedJobsCollections.find();
+  const result = await cursor.toArray();
+  res.send(result)
+})
+
+app.put('/updatePostedJobs/:id', async(req,res) =>{
+  const id = req.params.id;
+  const filter = {_id : new ObjectId(id)};
+  const options = {upsert : true};
+  const updateJobs = req.body;
+  const jobs = {
+    $set:{
+      email:updateJobs.email ,
+      jobTitle:updateJobs.jobTitle,
+      deadline:updateJobs.deadline ,
+      description:updateJobs.description ,
+      max_price:updateJobs.max_price ,
+     min_price:updateJobs.min_price,
+     photo:updateJobs.photo,
+     job_category:updateJobs.job_category
+    }
+  }
+  const result = await myPostedJobsCollections.updateOne(filter,jobs,options);
+  res.send(result)
+})
+
+
+
+
+
+
+app.get('/updatePostedJobs/:id', async(req,res) =>{
+  const id = req.params.id;
+  const query = {_id : new ObjectId(id)};
+  const result = await myPostedJobsCollections.findOne(query);
+  res.send(result)
+})
+
+app.delete('/myPostedJobs/:id', async(req,res) =>{
+  const id = req.params.id;
+  const query = {_id : new ObjectId(id)};
+    const result = await myPostedJobsCollections.deleteOne(query);
+    res.send(result)
 })
 
 
