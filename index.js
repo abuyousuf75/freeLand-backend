@@ -24,56 +24,24 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const webDevolopemtCollections = client.db('freeLand').collection('WebDevolopment');
-    const graphicsDesignCollections = client.db('freeLand').collection('GraphicsDesign');
-    const digitalMarketingCollections = client.db('freeLand').collection('DigitalMarketing');
+   
+    const allCetogoryJobs = client.db('freeLand').collection('allJobs');
     const usersCollections = client.db('freeLand').collection('user');
     const allBidJobsCollections =  client.db('freeLand').collection('allBid');
     const myPostedJobsCollections = client.db('freeLand').collection('myPostedJobs');
+    const subscriberEmailCollections = client.db('freeLand').collection('subscribers');
 
-    app.get('/webDevolopment', async(req,res) =>{
-        const cursor =  webDevolopemtCollections.find();
-        const result = await cursor.toArray();
-        res.send(result)
-    })
-
+    
     // for webDevolopment specapics jobs
-    app.get('/webDevolopment/:id', async(req,res) =>{
-        const id = req.params.id;
-        const query = {_id : new ObjectId(id)};
-        const result = await webDevolopemtCollections.findOne(query);
-        res.send(result)
-        
-    })
+    
 
-    app.get('/digitalMarketing', async(req,res) =>{
-        const cursor = digitalMarketingCollections.find();
-        const result = await cursor.toArray();
-        res.send(result)
-    })
 
 // for DigitalMarketing specapics jobs
-app.get('/digitalMarketing/:id', async(req,res) =>{
-  const id = req.params.id;
-  const query = {_id : new ObjectId(id)};
-  const result = await digitalMarketingCollections.findOne(query);
-  res.send(result)
-  
-})
 
-    app.get('/graphicsDesigner', async(req,res) =>{
-        const cursor = graphicsDesignCollections.find();
-        const result = await cursor.toArray();
-        res.send(result)
-    })
+
+   
 // for graphicsDesigner specapics jobs
-app.get('/graphicsDesigner/:id', async(req,res) =>{
-  const id = req.params.id;
-  const query = {_id : new ObjectId(id)};
-  const result = await graphicsDesignCollections.findOne(query);
-  res.send(result)
-  
-})
+
 
 /// for all bid jobs
 
@@ -86,10 +54,18 @@ app.post('/allBid', async(req,res) =>{
 // get all bid by email
 
 app.get('/MyBids', async(req,res) =>{
-  console.log(req.query.email);
   let query = {};
   if(req.query?.email){
       query = {email : req.query.email}
+  }
+  const result = await allBidJobsCollections.find(query).toArray();
+  res.send(result)
+
+})
+app.get('/BidRequest', async(req,res) =>{
+  let query = {};
+  if(req.query?.employerEmail){
+      query = {employerEmail : req.query.employerEmail}
   }
   const result = await allBidJobsCollections.find(query).toArray();
   res.send(result)
@@ -107,7 +83,7 @@ app.get('/postedJobs', async(req,res) =>{
 })
 
 app.get('/myPostedJobs', async(req,res) =>{
-  console.log(req.query.email);
+  // console.log(req.query.email);
   let query = {};
   if(req.query?.email){
       query = {email : req.query.email}
@@ -115,6 +91,24 @@ app.get('/myPostedJobs', async(req,res) =>{
   const result = await myPostedJobsCollections.find(query).toArray();
   res.send(result)
 })
+
+//all jobs bid
+
+
+
+// query by categorys
+app.get('/allJobs', async(req,res) =>{
+  // console.log(req.query.email);
+  let query = {};
+  if(req.query?.jobcategory){
+      query = {jobcategory : req.query.jobcategory}
+  }
+  const result = await myPostedJobsCollections.find(query).toArray();
+  res.send(result)
+})
+
+
+
 
 // update Posted Jobs
 app.get('/updatePostedJobs', async(req,res) =>{
@@ -131,6 +125,7 @@ app.put('/updatePostedJobs/:id', async(req,res) =>{
   const jobs = {
     $set:{
       email:updateJobs.email ,
+      employerEmail:updateJobs.employerEmail,
       jobTitle:updateJobs.jobTitle,
       deadline:updateJobs.deadline ,
       description:updateJobs.description ,
@@ -143,8 +138,6 @@ app.put('/updatePostedJobs/:id', async(req,res) =>{
   const result = await myPostedJobsCollections.updateOne(filter,jobs,options);
   res.send(result)
 })
-
-
 
 
 
@@ -170,11 +163,26 @@ app.delete('/myPostedJobs/:id', async(req,res) =>{
       res.send(result)
     })
 
+    //subscriberEmailCollections 
+
+    app.post('/subscriber',async(req,res) =>{
+      const subscriber = req.body;
+      const result = await subscriberEmailCollections.insertOne(subscriber);
+      res.send(result)
+    })
+
+    // all category jobs
+    app.get('/allJobs/:id', async(req,res) =>{
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)};
+      const result = await myPostedJobsCollections.findOne(filter)
+      res.send(result)
+    })
+
 // post all myPostedJobs
 
 app.post('/postedJobs',async(req,res) =>{
   const postedJobs = req.body;
-  console.log(postedJobs)
   const result = await myPostedJobsCollections.insertOne(postedJobs);
   res.send(result)
 })
