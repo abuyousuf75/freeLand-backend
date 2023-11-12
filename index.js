@@ -1,12 +1,30 @@
 const express = require('express'); 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 require('dotenv').config();
  const app = express(); 
 const port = process.env.PORT || 5000;
  // middleware 
-app.use(express.json())
-app.use(cors()) 
+app.use(express.json());
+app.use(cookieParser());
+
+app.use(
+  cors({
+      origin: ['http://localhost:5173'],
+      credentials: true,
+  }),
+)
+
+///new middle ware
+
+const logger = (req,res,next)=>{
+  console.log(req)
+  console.log('log info',req.method, req.uri2);
+
+  next()
+}
 
 
  const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7f8g7nk.mongodb.net/?retryWrites=true&w=majority`;
@@ -23,7 +41,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
    
     const allCetogoryJobs = client.db('freeLand').collection('allJobs');
     const usersCollections = client.db('freeLand').collection('user');
@@ -31,16 +49,32 @@ async function run() {
     const myPostedJobsCollections = client.db('freeLand').collection('myPostedJobs');
     const subscriberEmailCollections = client.db('freeLand').collection('subscribers');
 
-    
-    // for webDevolopment specapics jobs
-    
+   // auth related api
 
+   app.post('/jwt',(req,res)=>{
 
-// for DigitalMarketing specapics jobs
+    const user = req.body;
+    console.log('user token',user);
+    const token = jwt.sign(user, process.env.ACCES_TOKEN_SEC,{expiresIn: '1h'});
 
+    res
+    .cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    })
+    .send({
+        sucess : true
+    })
 
-   
-// for graphicsDesigner specapics jobs
+   })
+
+   app.post('/logout',async(req,res) =>{
+      const user = req.body;
+      console.log('lloged in user : ',user)
+     res.clearCookie('token',{maxAge: 0}).send({succes: true})
+   })
+
 
 
 /// for all bid jobs
@@ -51,17 +85,32 @@ app.post('/allBid', async(req,res) =>{
   res.send(result)
 })
 
-// get all bid by email
 
-app.get('/MyBids', async(req,res) =>{
+
+// Serch by async or dsc order
+
+app.get('/MyBids',async(req,res) =>{
+ 
+  const filter = req.query;
   let query = {};
   if(req.query?.email){
       query = {email : req.query.email}
   }
-  const result = await allBidJobsCollections.find(query).toArray();
+ const options = {
+   sort: {
+    bidAmound: filter.sort ==='asc' ? 1 :-1,
+   }
+
+ }
+ const cursor = allBidJobsCollections.find(query,options)
+  const result = await cursor.toArray();
   res.send(result)
 
 })
+
+
+
+
 app.get('/BidRequest', async(req,res) =>{
   let query = {};
   if(req.query?.employerEmail){
@@ -73,6 +122,38 @@ app.get('/BidRequest', async(req,res) =>{
 })
 
 
+
+app.patch('/BidRequest/:id', async(req,res) =>{
+  const id = req.params.id
+  const filter = {_id : new ObjectId(id)}
+  const updateBid = req.body;
+  const updateDoc = {
+    $set:{
+      status : updateBid.status
+    },
+  };
+  const result = await allBidJobsCollections.updateOne(filter,updateDoc);
+  res.send(result)
+
+})
+
+// update bid request sataus
+
+ ///zkxjLSJKD
+
+ 
+ app.get('/BidRequest/:id',async(req,res)=>{
+  const id = req.params.id;
+  const query = {_id : new ObjectId(id)};
+  const result = await allBidJobsCollections.findOne(query);
+  console.log(result)
+  res.send(result)
+
+})
+
+
+
+ ///zkxjLSJKD
 
 // get all postedJobs
 
